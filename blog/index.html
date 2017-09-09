@@ -11,7 +11,7 @@ title: Mincai Xu's Blog
             <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
             &nbsp;&nbsp;
             <span class="date">{{ post.date | date_to_string }}</span>
-            <div class="content">{{ post.content | truncate: 150 }}<div>
+            <div class="content">{{ post.content | textilize | truncate: 150 }}<div>
         </li>
 	  {% endfor %}
 	</ul>
