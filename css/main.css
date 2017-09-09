@@ -43,6 +43,10 @@ ul.posts li {
 }
 
 ul.posts li span.date {
-    list-style: none;
+    color: #999;
     font-size: 1.0em;
+}
+
+ul.posts li p.content {
+    font-size: 1.2em;
 }
