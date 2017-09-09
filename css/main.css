@@ -36,6 +36,7 @@ footer {
 ul.posts { 
     margin: 10px 5px;
     font-size: 1.2em;
+    padding: 0px;
 }
 
 ul.posts li {
@@ -55,5 +56,5 @@ ul.posts li span.date {
 }
 
 ul.posts li div.content {
-    font-size: 0.7em;
+    font-size: 0.6em;
 }
