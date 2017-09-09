@@ -39,7 +39,7 @@ ul.posts {
     padding: 0px;
 }
 
-ul.posts li {
+ul.posts > li {
     padding: 10px 5px; 
     list-style: none;
     border-top: 1px solid #e8e7e3;
