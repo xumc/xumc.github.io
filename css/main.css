@@ -45,16 +45,16 @@ ul.posts li {
     border-top: 1px solid #e8e7e3;
 }
 
-ul.posts li a {
+ul.posts li > a {
     color: #000;
     font-size: 1.2em;
 }
 
-ul.posts li span.date {
+ul.posts li > span.date {
     color: #999;
     font-size: 0.6em;
 }
 
-ul.posts li div.content {
+ul.posts li > div.content {
     font-size: 0.6em;
 }
