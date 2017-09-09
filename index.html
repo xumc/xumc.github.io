@@ -16,9 +16,8 @@ are interested in the same hobby.
   {% for post in site.posts %}
     <li>
         <i class="icono-book"></i>
-        <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
         <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
-        <br />
+        &nbps;&nbsp;&nbps;&nbsp;
         <span class="date">{{ post.date | date_to_string }}</span>
         <div class="content">{{ post.content | truncate: 300 }}<div>
     </li>
