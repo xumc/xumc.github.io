@@ -15,6 +15,7 @@ are interested in the same hobby.
 <ul class="posts">
   {% for post in site.posts %}
     <li>
+        <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
         <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
         <br />
         <span class="date">{{ post.date | date_to_string }}</span>
