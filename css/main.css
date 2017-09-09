@@ -34,14 +34,14 @@ footer {
 }
 
 ul.posts { 
-    margin: 20px auto 40px; 
+    margin: 10px 5px;
     font-size: 1.2em;
 }
 
 ul.posts li {
+    padding: 10px 5px; 
     list-style: none;
     border-top: 1px solid #e8e7e3;
-    padding-bottom: 20px;
 }
 
 ul.posts li a {
@@ -54,6 +54,6 @@ ul.posts li span.date {
     font-size: 0.6em;
 }
 
-ul.posts li p.content {
+ul.posts li div.content {
     font-size: 0.7em;
 }
