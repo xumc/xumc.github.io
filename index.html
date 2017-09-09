@@ -16,6 +16,7 @@ are interested in the same hobby.
   {% for post in site.posts %}
     <li>
         <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        <br />
         <span class="date">{{ post.date | date_to_string }}</span>
         <p class="content">{{ post.content | truncate: 300 }}<p>
     </li>
