@@ -44,14 +44,14 @@ ul.posts li {
     padding-bottom: 20px;
 }
 
-ul.posts li span.date {
-    color: #999;
-    font-size: 0.6em;
-}
-
 ul.posts li a {
     color: #000;
     font-size: 1.2em;
+}
+
+ul.posts li span.date {
+    color: #999;
+    font-size: 0.6em;
 }
 
 ul.posts li p.content {
