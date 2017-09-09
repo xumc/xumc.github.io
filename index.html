@@ -9,3 +9,11 @@ title: Mincai Xu's home
 about computer, Internet, and algorithm research. Please contact me if you have
 are interested in the same hobby.
 </p>
+
+
+<h1>My blogs</h1>
+<ul class="posts">
+  {% for post in site.posts %}
+    <li><span>{{ post.date | date_to_string }}</span> » <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a></li>
+  {% endfor %}
+</ul>
