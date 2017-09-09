@@ -17,7 +17,7 @@ are interested in the same hobby.
     <li>
         <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
         <span class="date">{{ post.date | date_to_string }}</span>
-        <p>{{ post.content | truncate: 3 }}<p>
+        <p>{{ post.content | truncate: 300 }}<p>
     </li>
   {% endfor %}
 </ul>
