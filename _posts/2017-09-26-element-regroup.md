@@ -1,4 +1,4 @@
-
+```ruby
     relations = [
       [1, 2],
       [2, 3],
@@ -33,3 +33,4 @@
     end
 
     puts gc.safe_invert
+```
