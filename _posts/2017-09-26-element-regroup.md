@@ -1,3 +1,9 @@
+---
+layout: post
+title: "找到同一个组内的元素"
+date: 2017-09-26
+---
+
 ```ruby
     relations = [
       [1, 2],
