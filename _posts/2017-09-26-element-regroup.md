@@ -12,9 +12,7 @@ date: 2017-09-26
       [8, 9],
       [10, 1]
     ]
-
-    relations = relations + relations.map{|ar| [ar.last, ar.first] }
-
+    
     inc = relations.count * 2
     group_id = 1
     gc = {}
