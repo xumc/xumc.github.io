@@ -8,7 +8,7 @@
             <link rel="stylesheet" href="/css/icono.min.css">
 	    <link href="/css/prism.css" rel="stylesheet" />
 		</head>
-		<body>
+		<body style="background-color: #000">
 			<nav>
 	    		<ul>
 	        		<li><a href="/">Home</a></li>
@@ -29,4 +29,29 @@
 			</footer>
 			<script src="/js/prism.js"></script>
 		</body>
+
+		<div id="hackBg">
+		</div>
+
+		<script type="text/javascript">
+
+			function getRandomNum(min,max) {   
+				var range = max - min;   
+				var rand = Math.random();   
+				return(min + Math.round(rand * range));   
+			} 
+
+			var width = document.body.clientWidth;
+			var height = document.body.clientHeight;
+
+			var innerHTML = "";
+			for (var i = 0; i < 100; i++) {
+				var left = getRandomNum(0, width);
+				var right = getRandomNum(0, height);
+
+				innerHTML += "<div style=\"position: absolute; left: "  + left + "px; top: " + right + "px; color: white;z-index: -1000\"><span>0</span></div>";
+			}
+
+			document.getElementById("hackBg").innerHTML = innerHTML;
+		</script>
 	</html>
