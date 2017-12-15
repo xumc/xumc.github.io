@@ -4,7 +4,7 @@ title: "找到同一个组内的元素"
 date: 2017-09-26
 ---
 
-```ruby
+ruby
     relations = [
       [1, 2],
       [2, 3],
@@ -37,4 +37,4 @@ date: 2017-09-26
     end
 
     puts gc.safe_invert
-```
+
