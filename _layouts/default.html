@@ -30,10 +30,15 @@
 			<script src="/js/prism.js"></script>
 		</body>
 
-		<div id="hackBg">
-		</div>
+		<canvas id="hackBg" style="z-index: -1000; position: absolute;">
+		</canvas>
 
 		<script type="text/javascript">
+			var canvas = document.getElementById('hackBg');
+			var ctx = canvas.getContext('2d');
+
+			ctx.fillStyle = 'green';
+			ctx.fillRect(10, 10, 100, 100);
 
 			// function getRandomNum(min,max) {   
 			// 	var range = max - min;   
