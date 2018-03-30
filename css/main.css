@@ -65,7 +65,7 @@ ul.posts li > div.content {
 }
 
 div.container {
-  margin-top: -420px;
   margin: 70px auto;
   width: 70%;
+  background-color: white;
 }
