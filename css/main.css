@@ -62,3 +62,7 @@ ul.posts li > span.date {
 ul.posts li > div.content {
     font-size: 0.6em;
 }
+
+div.container {
+  margin-top: -200px;
+}
