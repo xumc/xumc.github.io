@@ -70,4 +70,5 @@ div.container {
   background: rgba(255, 250, 238, 0.5);
   -pie-background:  rgba(200, 54, 54, 0.5);
   behavior: url(PIE.htc);
+  padding: 10px;
 }
