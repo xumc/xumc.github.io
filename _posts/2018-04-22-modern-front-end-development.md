@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "前端开发概要.md"
+title: "前端开发概要"
 date: 2018-04-22
 ---
 
