@@ -22,11 +22,11 @@ grafana 作为一个典型的Web系统，为我们使用Golang开发web系统提
 9. github.com/smartystreets/goconvey
 10. github.com/smartystreets/assertions
 
-## 启动流程
+## 1. 启动流程
 
 http server 包含http service所有需要的基础组件。
 
-```
+```go
 // github.com/grafana/grafana/pkg/api/http_server.go:38
 type HTTPServer struct {
 	log           log.Logger
@@ -45,7 +45,7 @@ type HTTPServer struct {
 
 granfana 启动的时候，会通过grafana 的registry机制自动注册http server. HTTPServer实现了registry中定义的Service interface，所以启动granfana的时候，会调用 HTTPServer 的Init 方法。Init方法主要初始化HTTPServer struct定义的log以及cache组件。 HTTPServer 实现了registry中定义的BackgroundService方法，所以启动granfana的时候，会调用HTTPServer 的Run方法。Run方法会创建Macaron实例，注册路由，监听http端口，并且处理shutdown逻辑。至此，http server启动完毕。
 
-```
+```go
 // github.com/grafana/grafana/pkg/api/http_server.go:59
 func (hs *HTTPServer) Run(ctx context.Context) error {
 	var err error
@@ -109,7 +109,7 @@ func (hs *HTTPServer) Run(ctx context.Context) error {
 }
 ```
 
-```
+```go
 // github.com/grafana/grafana/pkg/api/http_server.go:52
 func (hs *HTTPServer) Init() error {
 	hs.log = log.New("http.server")
@@ -119,16 +119,16 @@ func (hs *HTTPServer) Init() error {
 }
 ```
 
-## log
+## 2. log
 
 grafana 采用了github.com/inconshreveable/log15第三方log组件写log，并且做了简单的封装。主要针对config文件中logging相关的配置写了一些逻辑代码。有一点是和大部分系统不一样的， 在grafana中，不同的组件拥有不同的log对象，比如HTTPServer有自己的log对象，xorm（grafana 采用的ORM框架）也有自己的log对象。这些log对象产生的log会合成一个log，输出到stdout, log file。
-## grafana采用Macaron 作为Go Web 框架
+## 3. grafana采用Macaron 作为Go Web 框架
 
    作为一款具有高生产力和模块化设计的web框架， Macaron提供了功能丰富的中间件模块，能满足基本Web服务的需求。需要Macaron解决的第一个问题是web系统的routing问题，grafana针对Macaron的routing做了适当的封装。
 
    首先pkg/api/route_register.go 文件中定义了注册路由的逻辑。grafana把处理request分成namedmiddleware, subfixHandlers,和handler三部分。其中namedmiddleware是一种特殊的middleware，在grafana中， 通过github.com/facebookgo/inject设置了两个namedmiddleware, 分别为ReqeustMetrics 和 RequestTracing.
 
-```
+```go
 // github.com/grafana/grafana/pkg/cmd/grafana-server/server.go:78
 	serviceGraph.Provide(&inject.Object{Value: api.NewRouteRegister(middleware.RequestMetrics, middleware.RequestTracing)})
 
@@ -137,7 +137,7 @@ grafana 采用了github.com/inconshreveable/log15第三方log组件写log，并�
   subfixHandler则是应用于Group类型路由的一类handler。 最后的handler(s)才是处理request核心逻辑的函数。route_register.go 定义了注册路由的逻辑， 而pkg/api/api.go则主要定义了具体的路由。我们以api.go中的admin api为例解释这套逻辑。 reqGrafanaAdmin函数是说凡是访问/api/admin/*的request都必须要具有admin role。AdminGetSetting 是处理核心业务的函数,它接收一个ReqContext对象作为参数， ReqContext是grafana基于macaron.Context定义的request对象。 其中bind(dtos.AdminCreateUserFrom{})以及wrap(...)等也是handler，只是使用了一些bind 以及wrap方法做了一些处理。通过这种分门别类的路由， granfana减少了重复代码的产生，而且代码更简洁，易懂。
 
 
-```
+```go
     // github.com/grafana/grafana/pkg/api/api.go:368
 	// admin api
 	r.Group("/api/admin", func(adminRoute RouteRegister) {
@@ -154,7 +154,7 @@ grafana 采用了github.com/inconshreveable/log15第三方log组件写log，并�
 
 ```
 
-```
+```go
 // github.com/grafana/grafana/pkg/api/admin.go:12
 func AdminGetSettings(c *m.ReqContext) {
 	settings := make(map[string]interface{})
@@ -185,7 +185,8 @@ func AdminGetSettings(c *m.ReqContext) {
 	c.JSON(200, settings)
 }
 ```
-```
+
+```go
 // github.com/grafana/grafana/pkg/models/context.go:14
 type ReqContext struct {
 	*macaron.Context
@@ -201,14 +202,14 @@ type ReqContext struct {
 
 ```
 
-## bus机制
+## 4. bus机制
 
   在pkg/bus/bus.go中，定义了bus机制。bus主要利用供refect解决了接口依赖问题。在web系统中，我们往往把系统进行分层， 在grafana中， pkg/api package 属于接入层， pkg/api层会调用service层提供的业务逻辑代码。在api layer，我们为了能够调用service提供的函数并且方便些Unit test，传统的做法是在service提供的业务逻辑函数抽象出interface，这种做法虽然可行，但是很啰嗦。而且在写unit test的时候，会更加的啰嗦。 grafana中，提供bus机制来解决这个问题。首先，系统启动或者运行时， 可以通过bus.AddHandler函数注册HandlerFunc处理函数到globalBus对象， 然后在api层调用bus.Dispatch的时候，我们会提供一个strcut 对象作为msg，Dispatch会调用注册的HandlerFunc函数处理strcut对象，并且将处理结果写入到strcut对象中。
 我们以api/admin/stats 为例，在AdminGetStats handler函数中，首先生成GetAdminStatsQuery struct 实例，然后利用bus.Dispatch 方法将query dispatch出去。最后由init函数注册的GetAdminStats函数处理，并且更新GetAdminStatsQuery strcut的Result的值。最后，AdminGetStats 会把statsQuery.Result以json形式返回给客户端。
 这种机制在我们写unit test的时候mock service 函数非常实用，用起来也非常方便。
 
 
-```
+```go
 // github.com/grafana/grafana/pkg/services/sqlstore/stats.go:11
 func init() {
 	bus.AddHandler("sql", GetSystemStats)
@@ -219,12 +220,14 @@ func init() {
 }
 
 ```
-```
+
+```go
 // github.com/grafana/grafana/pkg/api/api.go:376
 		adminRoute.Get("/stats", AdminGetStats)
 
 ```
-```
+
+```go
 // github.com/grafana/grafana/pkg/api/admin.go:12
 func AdminGetSettings(c *m.ReqContext) {
 	settings := make(map[string]interface{})
@@ -259,13 +262,13 @@ func AdminGetSettings(c *m.ReqContext) {
 
   dispatch机制中，每个msg由一个HandlerFunc处理。 除了dispatch 模式外， bus还提供了Publish机制， 每个msg可以由多个handlerFunc处理。实现机制和dispatch类似，只是可以注册多个handlerFunc处理对应的event。（publish机制中，把msg成为event）。我们以signup 为例解释publish机制。在用户signup成功时， pkg/api/signup.go 会调用bus.Publish方法产生SignUpCompleted event。在用户注册完成后，我们往往会发送注册成功邮件，在grafana中，发送注册成功邮件是由NotificationService完成的。NotificationService 会监听SignUpCompleted event, 如果有SignUpCompleted event产生，NotificationService就会执行发送邮件的逻辑。
 
-```
+```go
 // github.com/grafana/grafana/pkg/services/notifications/notifications.go:52
 	ns.Bus.AddEventListener(ns.signUpCompletedHandler)
 
 ```
-```
 
+```go
 // github.com/grafana/grafana/pkg/api/signup.go:87
 	// publish signup event
 	user := &createUserCmd.Result
@@ -283,7 +286,7 @@ func AdminGetSettings(c *m.ReqContext) {
   需要注意的是，不论dispatch还是publish机制， handlerFunc 都是同步完成的，dispatch函数会调用对应的handlerFunc, 然后执行handlerFunc， handlerFunc处理过程中，产生错误的话，错误会作为dispatch的返回值返回。在publish机制中， 一个event会被多个HandlerFunc处理。假设有三个HandlerFunc,分别为HandlerFunc1， HandlerFunc2， HandlerFunc3. bus.Publish会按照AddEventListener的顺序执行三个HandlerFunc， 假设HandlerFunc1执行成功， HandlerFunc2由于种种原因执行失败了，这个时候Publish就会返回，HandlerFunc3就不会被执行。 
 这一点和MQ产品中的异步机制是完全不同的。
 
-## Unit test
+## 5. Unit test
   在golang的世界里面，相对于ruby等语言来说，写单元测试的确是一个繁琐无趣的活。一般来说，我们会通过golang的interface来mock一些方法。这种mock方法又衍生出两种写法。 比如，我们有一个待测方法。 func1， 里面有一个已经被测试过无需写单元测试的方法func2, 那么我们有两种方式来写单元测试。
   方法1， 利用“type func"为func2抽象出一个接口interface_for_func2, 然后这个接口作为func1的一个参数。在运行的代码中，把func2传入func1作为参数。 在单元测试中，则用一个实现了interface_for_func2的mock方法传入func1.这样就实现了mock方法的目的。
   方法2， 原理上和方法1是类似的，只是写法上有一些不同。 我们不在使用type func 抽象接口，而是为func2专门定义一个接口， 然后用一个struct来实现这些接口，在运行的代码中，使用实现了接口的struct来调用func2， 而在单元测试中，则mock一个实现了接口的mock的struct来调用mock的func2.
@@ -291,7 +294,7 @@ func AdminGetSettings(c *m.ReqContext) {
 
   然而在grafana中， 使用了bus机制来解耦不通层面的代码。 以达到方便些单元测试的目的。 以下图里面的一个case为例，我们只需要使用bus.AddHandler就可以构造mock函数了。 不需要生成代码，简单方便。
 
-```
+```go
 // github.com/grafana/grafana/pkg/api/dashboard_permission_test.go:15
 func TestDashboardPermissionApiEndpoint(t *testing.T) {
 	Convey("Dashboard permissions test", t, func() {
