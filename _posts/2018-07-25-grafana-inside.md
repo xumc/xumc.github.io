@@ -218,13 +218,11 @@ func init() {
 	bus.AddHandler("sql", GetAdminStats)
 	bus.AddHandlerCtx("sql", GetSystemUserCountStats)
 }
-
 ```
 
 ```go
 // github.com/grafana/grafana/pkg/api/api.go:376
 		adminRoute.Get("/stats", AdminGetStats)
-
 ```
 
 ```go
