@@ -1,3 +1,10 @@
+var container = document.getElementsByClassName("container")[0];
+if (document.body.clientWidth < 1080) {
+  container.style.width="95%";
+} else {
+  container.style.with = "70%";
+}
+
 /* -----------------------------------------------
 /* How to use? : Check the GitHub README
 /* ----------------------------------------------- */
