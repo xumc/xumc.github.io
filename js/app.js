@@ -2,7 +2,7 @@ var container = document.getElementsByClassName("container")[0];
 if (document.body.clientWidth < 1080) {
   container.style.width="95%";
 } else {
-  container.style.with = "70%";
+  container.style.width = "70%";
 }
 
 /* -----------------------------------------------
