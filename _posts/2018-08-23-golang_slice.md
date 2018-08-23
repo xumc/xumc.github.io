@@ -15,6 +15,12 @@ type CollectionItem struct {
 
 type Collection []*CollectionItem
 
+func doThing0(result *Collection) {
+	temp := make(Collection, 1)
+	temp[0] = &CollectionItem{ID: 1111}
+        result = &temp
+}
+
 func doThing(result Collection) {
 	temp := make(Collection, 1)
 	temp[0] = &CollectionItem{ID: 1111}
@@ -28,6 +34,10 @@ func doThing2(result []*CollectionItem) {
 }
 
 func main() {
+   	result0 := make(Collection, 0)
+	doThing0(&result0)
+	fmt.Println(&result0)
+
    	result := make(Collection, 0)
 	doThing(result)
 	fmt.Println(result)
