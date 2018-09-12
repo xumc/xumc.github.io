@@ -170,6 +170,7 @@ func (m *Manager) ApplyConfig(cfg *config.Config) error {
 - func (sp *scrapePool) reload(cfg *config.ScrapeConfig)
 - func (sp *scrapePool) Sync(tgs []*targetgroup.Group) (tActive []*Target, tDropped []*Target)
 - func (sp *scrapePool) sync(targets []*Target)
+
 最重要的函数是sync函数。sync会根据输入参数targets列表与原有的targets列表比对，如果有新添加进来的target，则会创建新的targetScraper和loop,并且启动新的loop。sync根据输入参数targets列表与原有的targets列表对比时，也会发现已经失效的target，这部分target， prometheus会stop掉并从列表中删除。如何理解loop呢？ loop其实就是管理scraper的manage。因为每一个loop都是用一个goroutine来run的。所以在loop内可以控制何时进行scraper操作。我们知道prometheus是的拉模型，需要定时到监控目标上拉取相应的数据，loop就是管理何时进行拉取这个操作的。
 ```go
 // sync takes a list of potentially duplicated targets, deduplicates them, starts
