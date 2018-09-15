@@ -5,11 +5,12 @@ date: 2018-09-12
 ---
 
 在prometheus中，scrape组件负责拉取监控目标的数据，并且把拉取的数据交给storage组件。scrape需要抓取的监控目标由discover组件提供。示意图如下
-```
+
+<div class="mermaid">
 graph LR
 A[Service Discover] --> B[Scrape]
 B --> C[Storage]
-```
+</div>
 
 在scrape组件主要分成manager, scrapePool和target三部分。下面我们来看看这三部分的数据结构。
 ```go
@@ -341,11 +342,3 @@ mainLoop:
 ### scrapeLoop
 ### target
 
-![Alt text](http://g.gravizo.com/g?
-@startuml;
-Object <|-- ArrayList;
-Object : equals%28%29;
-ArrayList : Object[] elementData;
-ArrayList : size%28%29;
-@enduml
-)
