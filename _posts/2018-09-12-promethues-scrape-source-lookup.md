@@ -337,8 +337,232 @@ mainLoop:
 }
 
 ```
-### targetScraper
-### scrapeCache
-### scrapeLoop
+在`scrapeLoop.run`函数中，我们可以看到，scrapeLoop拿到数据后，会将数据交给append函数。append函数主要在数据交给storage engine前，做一些预处理的工作。 在预处理工作中，prometheus设计了scrapeCache struct,用来追踪从metric string到label sets storage references的对应mapping关系。其次，scrapeCache还会记录两次scrape操作之间重复的那部分数据，以便快速的判断重复的数据，对于重复的数据，就没有必要在此存储到storage engine中了。 append函数首先会把拿到的数据(b)利用textparse parser解析成met(metric的简写)变量，然后判断met是不是重复了，如果重复了就会丢弃这条数据。下面会根据met从scripeCache.series中查找，如果查找到对应的cacheEntity,则会调用appender的AddFast函数进行存储操作。至于存储的细节，超出了scrape的范围，我们会在下面的文章中分析。如果没有查找到对应cacheEntity，那么会调用appender的Add方法进行存储操作，并且把相关信息存储到cache中，以备下一个次scrape的时候进行对比。appender是一个接口，具体有好几种实现存储的方式。类似于mysql中的engine，可以把数据存储在innoDB engine，也可以存储在其他mysql engine中。
+```go
+// scrapeCache tracks mappings of exposed metric strings to label sets and
+// storage references. Additionally, it tracks staleness of series between
+// scrapes.
+type scrapeCache struct {
+	iter uint64 // Current scrape iteration.
+
+	// Parsed string to an entry with information about the actual label set
+	// and its storage reference.
+	series map[string]*cacheEntry
+
+	// Cache of dropped metric strings and their iteration. The iteration must
+	// be a pointer so we can update it without setting a new entry with an unsafe
+	// string in addDropped().
+	droppedSeries map[string]*uint64
+
+	// seriesCur and seriesPrev store the labels of series that were seen
+	// in the current and previous scrape.
+	// We hold two maps and swap them out to save allocations.
+	seriesCur  map[uint64]labels.Labels
+	seriesPrev map[uint64]labels.Labels
+
+	metaMtx  sync.Mutex
+	metadata map[string]*metaEntry
+}
+```
+```go
+func (sl *scrapeLoop) append(b []byte, ts time.Time) (total, added int, err error) {
+	var (
+		app            = sl.appender()
+		p              = textparse.New(b)
+		defTime        = timestamp.FromTime(ts)
+		numOutOfOrder  = 0
+		numDuplicates  = 0
+		numOutOfBounds = 0
+	)
+	var sampleLimitErr error
+
+loop:
+	for {
+		var et textparse.Entry
+		if et, err = p.Next(); err != nil {
+			if err == io.EOF {
+				err = nil
+			}
+			break
+		}
+		switch et {
+		case textparse.EntryType:
+			sl.cache.setType(p.Type())
+			continue
+		case textparse.EntryHelp:
+			sl.cache.setHelp(p.Help())
+			continue
+		case textparse.EntryComment:
+			continue
+		default:
+		}
+		total++
+
+		t := defTime
+		met, tp, v := p.Series()
+		if tp != nil {
+			t = *tp
+		}
+
+		if sl.cache.getDropped(yoloString(met)) {
+			continue
+		}
+		ce, ok := sl.cache.get(yoloString(met))
+		if ok {
+			switch err = app.AddFast(ce.lset, ce.ref, t, v); err {
+			case nil:
+				if tp == nil {
+					sl.cache.trackStaleness(ce.hash, ce.lset)
+				}
+			case storage.ErrNotFound:
+				ok = false
+			case storage.ErrOutOfOrderSample:
+				numOutOfOrder++
+				level.Debug(sl.l).Log("msg", "Out of order sample", "series", string(met))
+				targetScrapeSampleOutOfOrder.Inc()
+				continue
+			case storage.ErrDuplicateSampleForTimestamp:
+				numDuplicates++
+				level.Debug(sl.l).Log("msg", "Duplicate sample for timestamp", "series", string(met))
+				targetScrapeSampleDuplicate.Inc()
+				continue
+			case storage.ErrOutOfBounds:
+				numOutOfBounds++
+				level.Debug(sl.l).Log("msg", "Out of bounds metric", "series", string(met))
+				targetScrapeSampleOutOfBounds.Inc()
+				continue
+			case errSampleLimit:
+				// Keep on parsing output if we hit the limit, so we report the correct
+				// total number of samples scraped.
+				sampleLimitErr = err
+				added++
+				continue
+			default:
+				break loop
+			}
+		}
+		if !ok {
+			var lset labels.Labels
+
+			mets := p.Metric(&lset)
+			hash := lset.Hash()
+
+			// Hash label set as it is seen local to the target. Then add target labels
+			// and relabeling and store the final label set.
+			lset = sl.sampleMutator(lset)
+
+			// The label set may be set to nil to indicate dropping.
+			if lset == nil {
+				sl.cache.addDropped(mets)
+				continue
+			}
+
+			var ref uint64
+			ref, err = app.Add(lset, t, v)
+			// TODO(fabxc): also add a dropped-cache?
+			switch err {
+			case nil:
+			case storage.ErrOutOfOrderSample:
+				err = nil
+				numOutOfOrder++
+				level.Debug(sl.l).Log("msg", "Out of order sample", "series", string(met))
+				targetScrapeSampleOutOfOrder.Inc()
+				continue
+			case storage.ErrDuplicateSampleForTimestamp:
+				err = nil
+				numDuplicates++
+				level.Debug(sl.l).Log("msg", "Duplicate sample for timestamp", "series", string(met))
+				targetScrapeSampleDuplicate.Inc()
+				continue
+			case storage.ErrOutOfBounds:
+				err = nil
+				numOutOfBounds++
+				level.Debug(sl.l).Log("msg", "Out of bounds metric", "series", string(met))
+				targetScrapeSampleOutOfBounds.Inc()
+				continue
+			case errSampleLimit:
+				sampleLimitErr = err
+				added++
+				continue
+			default:
+				level.Debug(sl.l).Log("msg", "unexpected error", "series", string(met), "err", err)
+				break loop
+			}
+			if tp == nil {
+				// Bypass staleness logic if there is an explicit timestamp.
+				sl.cache.trackStaleness(hash, lset)
+			}
+			sl.cache.addRef(mets, ref, lset, hash)
+		}
+		added++
+	}
+	if sampleLimitErr != nil {
+		if err == nil {
+			err = sampleLimitErr
+		}
+		// We only want to increment this once per scrape, so this is Inc'd outside the loop.
+		targetScrapeSampleLimit.Inc()
+	}
+	if numOutOfOrder > 0 {
+		level.Warn(sl.l).Log("msg", "Error on ingesting out-of-order samples", "num_dropped", numOutOfOrder)
+	}
+	if numDuplicates > 0 {
+		level.Warn(sl.l).Log("msg", "Error on ingesting samples with different value but same timestamp", "num_dropped", numDuplicates)
+	}
+	if numOutOfBounds > 0 {
+		level.Warn(sl.l).Log("msg", "Error on ingesting samples that are too old or are too far into the future", "num_dropped", numOutOfBounds)
+	}
+	if err == nil {
+		sl.cache.forEachStale(func(lset labels.Labels) bool {
+			// Series no longer exposed, mark it stale.
+			_, err = app.Add(lset, defTime, math.Float64frombits(value.StaleNaN))
+			switch err {
+			case storage.ErrOutOfOrderSample, storage.ErrDuplicateSampleForTimestamp:
+				// Do not count these in logging, as this is expected if a target
+				// goes away and comes back again with a new scrape loop.
+				err = nil
+			}
+			return err == nil
+		})
+	}
+	if err != nil {
+		app.Rollback()
+		return total, added, err
+	}
+	if err := app.Commit(); err != nil {
+		return total, added, err
+	}
+
+	sl.cache.iterDone()
+
+	return total, added, nil
+}
+```
+
+在提交到storage package 的sotrage engine前，还有两个操作需要注意。
+1. timeLimitAppender
+2. limitAppender
+
+timeLimitAppender是用来限制data的时效性的。如果某一条数据在提交给storage进行存储的时候，生成这条数据已经超过10分钟，那么prometheus就会抛错。目前10分钟是写死到代码里面的， 无法通过配置文件配置。limitAppender是用来限制存储的数据label个数，如果超过限制，该数据将被忽略，不入存储；默认值为0，表示没有限制,可以通过配置文件中的sample_limit来进行配置。
+
 ### target
+
+target部分较为简单，主要封装了一些小方法供manage和scrape使用。没有复杂的逻辑。
+```go
+// Target refers to a singular HTTP or HTTPS endpoint.
+type Target struct {
+	// Labels before any processing.
+	discoveredLabels labels.Labels
+	// Any labels that are added to this target and its metrics.
+	labels labels.Labels
+	// Additional URL parmeters that are part of the target URL.
+	params url.Values
+
+	mtx        sync.RWMutex
+	lastError  error
+	lastScrape time.Time
+	health     TargetHealth
+	metadata   metricMetadataStore
+}
+```
 
