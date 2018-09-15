@@ -340,3 +340,12 @@ mainLoop:
 ### scrapeCache
 ### scrapeLoop
 ### target
+
+![Alt text](http://g.gravizo.com/g?
+@startuml;
+Object <|-- ArrayList;
+Object : equals%28%29;
+ArrayList : Object[] elementData;
+ArrayList : size%28%29;
+@enduml
+)
