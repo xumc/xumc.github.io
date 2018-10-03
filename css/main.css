@@ -4,7 +4,11 @@ body {
 }
 
 nav ul {
+  overflow: hidden;
   box-shadow: 0px 6px 6px #E6E6E6;
+  position: fixed;
+  top: 0;
+  width: 100%;
 }
 
 nav ul, footer ul {
@@ -77,4 +81,5 @@ div.container {
   -pie-background:  rgba(200, 54, 54, 0.5);
   behavior: url(PIE.htc);
   padding: 10px;
+  margin-top: 50px;
 }
