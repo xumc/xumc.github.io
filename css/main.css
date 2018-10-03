@@ -9,7 +9,9 @@ nav ul {
   position: fixed;
   top: 0;
   width: 100%;
-  background: rgba(255, 250, 238, 0.5);
+  margin-top: 0px;
+  paddingTop: 26px;
+  background-color: white;
 }
 
 nav ul, footer ul {
