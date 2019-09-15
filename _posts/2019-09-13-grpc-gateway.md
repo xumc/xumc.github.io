@@ -55,3 +55,5 @@ G -->|GRPC| S2[Service 2]
 </div>
 下面就是编码的问题了。
 
+`https://github.com/xumc/mini-gateway` 提供了json和grpc之间在gateway层面的转换的简单粗糙实现。
+
