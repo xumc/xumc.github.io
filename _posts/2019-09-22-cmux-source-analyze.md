@@ -106,13 +106,13 @@ func (m *cMux) serve(c net.Conn, donec <-chan struct{}, wg *sync.WaitGroup) {
 }
 ```
 
-根据刚才的描述结合cmux源码，我们可以总结出以下的cmux数据流图。一旦有新的连接建立， cmux.Serve方法会首先判断这个连接传递数据的类型，然后将连接扔到sl.l.connc里面， 左侧的Grpc.Serve和Http.Serve方法中调用Accept的时候，实际上是从connc里面取出连接而已。
+根据刚才的描述结合cmux源码，我们可以总结出以下的cmux数据流图。一旦有新的连接建立， cmux.Serve方法会首先Accept, 根据接收到的字节流判断这个连接传递数据的类型，然后将连接扔到sl.l.connc里面， 左侧的Grpc.Serve和Http.Serve方法中调用Accept的时候，实际上是从connc里面取出连接而已。
 
 <div class="mermaid">
 graph LR
 A[Client or brower] -->|tcp 字节流| B[cmux.Serve]
-B --> |http2 字节流|C[Grpc.Serve]
-B --> |http1 字节流| D[Http.Serve]
+B --> |grpc connections|C[Grpc.Serve]
+B --> |http1 connections| D[Http.Serve]
 </div>
 
 那么cmux是如何做match的呢？
