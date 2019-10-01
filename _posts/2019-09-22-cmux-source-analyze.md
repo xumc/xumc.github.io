@@ -6,7 +6,7 @@ date: 2019-09-22
 
 一直以来，接触的很多服务都在同一个端口上提供了grpc和http的服务。一直都比较纳闷这个是怎么做到的。 今天有时间看了一下cmux的源码，原来核心逻辑还是比较简单的。
 
-我们知道在服务器端程序中，我们往往会首先监听一个固定的服务器端端口，然后各个客户端（浏览器）访问这个固定端口来和服务器建立连接。 服务器接受到客户端的请求后，会使用一个动态端口和客户端建立tcp连接。这是tcp编程里面常见套路。grpc(http2)和http1作为tcp之上的协议， 完全可以走在同一个tcp连接上。在tcp协议看来，无论是grpc(http2)还是http1都是字节流而已。问题在于我们怎么才能发现某一段字节流是grpc(http2)还是http1. 这就涉及到grpc(http2)和http1协议的具体细节了，实际上，我们只要从字节流中抓取到符合grpc（http2）或者http1的协议的特色特征就可以区分了。cmux正是利用了这一点来区分grpc(http2), http1以及其他基于tcp的上层协议的。
+我们知道在服务器端程序中，我们往往会首先监听一个固定的服务器端端口，然后各个客户端（浏览器）访问这个固定端口来和服务器建立连接。 服务器接受到客户端的请求后，和客户端建立tcp连接。这是tcp编程里面常见套路。grpc(http2)和http1作为tcp之上的协议， 完全可以走在同一个tcp连接上。在tcp协议看来，无论是grpc(http2)还是http1都是字节流而已。问题在于我们怎么才能发现某一段字节流是grpc(http2)还是http1. 这就涉及到grpc(http2)和http1协议的具体细节了，实际上，我们只要从字节流中抓取到符合grpc（http2）或者http1的协议的特色特征就可以区分了。cmux正是利用了这一点来区分grpc(http2), http1以及其他基于tcp的上层协议的。
 
 我们以官方的example为例， 来说明cmux内部的工作原理。和以往的grpc或者http服务写法有些不同，我们需要使用cmux提供的Match方法来说明到底哪些特征是属于哪种协议的，我们也可以自定义这些特征。先看Match函数的输入与输出。从中可一旦到， Match函数的输入是一个或者多个Matcher函数， Matcher函数的输入是io.Reader输出是bool。从中我们就可以推测Match函数的逻辑了。 首先cmux会根据Matcher函数判断某一段字节流(io.Reader)是否满足Matcher函数，如果满足则返回一个listener对象。 这个listener对象实际上是已经建立的tcp连接之上的字节流的符合matcher特征的数据，在cmux中使用muxListener来标识。muxListener 实现了net.Listener接口，结合官方example来看， 变量grpcL, httpL和trpcL均属于muxListener类型的实例。当我们通过grpcS.Serve(grpcL), httpS.Serve(httpL)或者trpS.Accept时，我们都会调用muxListener上的Accept函数来”建立连接“。之所以在建立连接上加上引号，是因为这些并非真正的建立连接，而是使用前面提到的已经建立的连接(使用MuxConn标识)而已。
 ```
