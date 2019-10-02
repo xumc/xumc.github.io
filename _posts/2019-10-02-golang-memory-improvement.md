@@ -56,4 +56,4 @@ func load_xxx() (dataslice []*Element, err error) {
 
 
 经过这三轮优化后，这个应用目测还能再撑半年。应该可以挨到这个应用逻辑的重构了。但是我总是觉得这个应用可以优化的地方还有很多，目前发现一处比较奇怪的地方，还没有弄明白其中的原因。这几天研究研究。
-![avatar](../img/golang_memory_improvement.png)
+![avatar](../../../../img/golang_memory_improvement.png)
