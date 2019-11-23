@@ -20,8 +20,10 @@ date: 2019-11-23
 
 <div class="mermaid">
 sequenceDiagram
-Ad投放->>counter: 把订单111的已投放impression量加1
-counter->>Ad投放: 加完了，你继续处理吧
+    participant Ad投放
+    participant counter
+    Ad投放->>counter: 把订单111的已投放impression量加1
+    counter->>Ad投放: 加完了，你继续处理吧
 </div>
 
 
@@ -30,8 +32,10 @@ counter->>Ad投放: 加完了，你继续处理吧
 
 <div class="mermaid">
 sequenceDiagram
-Ad投放->>counter: 把订单111的已投放impression量加1
-counter->>Ad投放: 好，我稍后给你加，你继续处理吧
+    participant Ad投放
+    participant counter
+    Ad投放->>counter: 把订单111的已投放impression量加1
+    counter->>Ad投放: 好，我稍后给你加，你继续处理吧
 </div>
 
 
@@ -40,9 +44,12 @@ counter->>Ad投放: 好，我稍后给你加，你继续处理吧
 
 <div class="mermaid">
 sequenceDiagram
-Ad投放->>local counter: 把订单111的已投放impression量加1
-local counter->>Ad投放: 加完了，你继续处理吧
-local counter->>global counter: 到时间了，我要把我的值更新到global counter中去。
+    participant Ad投放
+    participant local counter
+    participant global counter
+    Ad投放->>local counter: 把订单111的已投放impression量加1
+    local counter->>Ad投放: 加完了，你继续处理吧
+    local counter->>global counter: 到时间了，我要把我的值更新到global counter中去。
 </div>
 
 这样子，我们只需要控制local counter更新数据到global counter的时间，我们就能够控制counter数据的时延了。 
