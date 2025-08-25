@@ -2,7 +2,7 @@
 layout: post
 title: "如何写代码才能处理读多写少的场景"
 date: 2019-12-15
-tags: golang
+tags: Golang
 ---
 
 在互联网高并发场景下， 如何写代码才能handle住多数情况下读，少数情况写的的case？
