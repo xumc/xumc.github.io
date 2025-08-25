@@ -44,3 +44,9 @@ about computer, Internet, and algorithm research. Please contact me if you are i
     <span class="next ">下一页</span>
   {% endif %}
 </div>
+
+<div class="tags">
+{% if site.tags != "" %}
+  {% include collecttags.html %}
+{% endif %}
+</div>
