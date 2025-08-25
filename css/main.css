@@ -78,6 +78,10 @@ ul.posts li > div.content {
     font-size: 0.8em;
 }
 
+.pagination {
+    text-align: center;
+}
+
 div.container {
   margin: 70px auto;
   width: 70%;
