@@ -1,7 +1,7 @@
 theme: jekyll-theme-cayman
 name: Mincai Xu's Internet home
 markdown: kramdown
-permalink: /blog/:year/:month/:day/:title
+# permalink: /blog/:year/:month/:day/:title
 paginate: 10
 plugins:
     - jekyll-sitemap
