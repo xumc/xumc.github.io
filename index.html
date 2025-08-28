@@ -3,14 +3,19 @@ layout: default
 title: Mincai Xu's home
 ---
 
-<h1>Introduction</h1>
+<h1>简介</h1>
 <p>
-  I am Mincai, a web develop engineer, focus on web development. I am passionate
-about computer, Internet, and algorithm research. Please contact me if you are interested in the same hobby.
+  我，一个web开发者， 聚焦于web开发， 痴迷于对计算机，网络，算法的研究。
 </p>
 
+<div class="tags">
+{% if site.tags != "" %}
+  {% include archive.html %}
+{% endif %}
+</div>
 
-<h1>My blogs</h1>
+<br />
+<br />
 <ul class="posts">
   {% for post in paginator.posts %}
     <li>
@@ -45,12 +50,3 @@ about computer, Internet, and algorithm research. Please contact me if you are i
   {% endif %}
 </div>
 
-<div class="tags">
-{% if site.tags != "" %}
-  {% include collecttags.html %}
-{% endif %}
-</div>
-
-<div calss=""archive">
-  {% include archive.html %}
-</div>
