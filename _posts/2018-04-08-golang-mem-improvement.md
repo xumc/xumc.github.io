@@ -2,6 +2,7 @@
 layout: post
 title: "golang内存优化"
 date: 2018-04-28
+tags: Golang
 ---
 
 <table>

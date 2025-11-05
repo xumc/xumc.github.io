@@ -2,6 +2,7 @@
 layout: post
 title: "Golang Slice"
 date: 2018-07-25
+tags: Golang
 ---
 
 ```go

@@ -2,6 +2,7 @@
 layout: post
 title: "公共平台组和业务开发的思考"
 date: 2017-09-01
+tags: Golang
 ---
 
 现在的互联网公司，基本上有点规模的公司都会有公共平台组（部），主要负责开发一些公共框架，基础库代码等。比如前端开发要搞一个framework，后端也有日志处理，权限管理，登录管理， rpc调用框架等。这些东西因为每一个业务开发部门都会用到，所以专门会有开发人员来维护这些公共代码。 康威定律告诉我们任何设计系统的组织，必然会产生以下设计结果：即其结构就是该组织沟通结构的写照。简单来说： 产品必然是其组织沟通结构的缩影（Any organization that designs a system (defined broadly) will produce a design whose structure is a copy of the organization's communication structure.).所以在公共平台组（部）和业务开发组之间，业务逻辑和公共逻辑之间，就会产生一些很有意思的问题，这需要我们好好的思考思考。

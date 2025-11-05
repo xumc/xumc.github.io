@@ -2,6 +2,7 @@
 layout: post
 title: "Promethues Scrape 部分源码解析"
 date: 2018-09-12
+tags: Golang
 ---
 
 在prometheus中，scrape组件负责拉取监控目标的数据，并且把拉取的数据交给storage组件。scrape需要抓取的监控目标由discover组件提供。示意图如下

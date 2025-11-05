@@ -2,6 +2,7 @@
 layout: post
 title: "waitgroup 源码解析"
 date: 2019-11-13
+tags: Golang
 ---
 WaitGroup在Golang语言开发中使用非常平凡，但是WaitGroup内部实现是什么样子的呢？标准库中WaitGroup虽然仅仅141行代码， 里面的文章可是大有可为。
 

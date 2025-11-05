@@ -2,6 +2,7 @@
 layout: post
 title: "grpc gateway设计"
 date: 2019-09-13
+tags: Golang
 ---
 
 现在很多微服务内部都会使用grpc作为微服务内部调用的方式。 然而在客户端（web，移动应用）很多还是停留在使用restfull接口上， 当然移动应用还是比较容易使用grpc来call后端服务的。 但是web就显得有些不太容易了。当然现在也有了grpc-web(https://github.com/grpc/grpc-web)这种方式，不过这种全局使用grpc的方式在设计的时候用的不是普遍。尤其对于以后系统的改造来说前端改造成call后端的grpc来还是比较困难的。 本文假设我们仅仅进行后端服务的改造，前端仍然使用restfull接口。
